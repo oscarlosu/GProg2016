@@ -7,13 +7,24 @@ public class PlanetBuilder : MonoBehaviour {
     private IcoSphere IcoSpherePrefab;
 
     [SerializeField]
-    private IcoSphere icosphere;
-    public IcoSphere IcoSphere {
+    private IcoSphere land;
+    public IcoSphere Land {
         get {
-            if(icosphere == null) {
-                icosphere = Instantiate(IcoSpherePrefab);
+            if(land == null) {
+                land = Instantiate(IcoSpherePrefab);
             }
-            return icosphere;
+            return land;
+        }
+    }
+
+    [SerializeField]
+    private IcoSphere water;
+    public IcoSphere Water {
+        get {
+            if (water == null) {
+                water = Instantiate(IcoSpherePrefab);
+            }
+            return water;
         }
     }
 
@@ -31,15 +42,9 @@ public class PlanetBuilder : MonoBehaviour {
     private bool useRandomSeed = false;
 
     // Colors
+    [Header("Land Generation Params")]
     [SerializeField]
-    private List<Area> areas;
-    public List<Area> Areas {
-        get {
-            return areas;
-        }
-    }
-
-    [Header("Generation Params")]
+    private List<Area> LandAreas;
     [SerializeField]
     private NoiseParams baseElevation;
     [SerializeField]
@@ -49,12 +54,24 @@ public class PlanetBuilder : MonoBehaviour {
     [SerializeField]
     private NoiseParams mountainMask;
 
+    [Header("Water Generation Params")]
+    [SerializeField]
+    private Area WaterArea;
+    [SerializeField]
+    private NoiseParams waterParams;
+    [SerializeField]
+    private bool useWaterMask;
+    [SerializeField]
+    private NoiseParams waterMask;
+
 
 
     public void BuildPlanet() {
-        IcoSphere.CreateIcosphere(radius, subdivisionSteps);
+        Land.CreateIcosphere(radius, subdivisionSteps);
+        Water.CreateIcosphere(radius, subdivisionSteps);
         ApplyHeightMap();
-        IcoSphere.UpdateMesh();
+        Land.UpdateMesh();
+        Water.UpdateMesh();
     }
 
     private void InitialiseSeed() {
@@ -65,15 +82,23 @@ public class PlanetBuilder : MonoBehaviour {
 	
 	public void ApplyHeightMap() {
         InitialiseSeed();
-        foreach (Triangle tri in IcoSphere.Triangles) {
-            ApplyHeightMapToPoint(tri.p1);
-            ApplyHeightMapToPoint(tri.p2);
-            ApplyHeightMapToPoint(tri.p3);
-            SetColor(tri);
+        // Land
+        foreach (Triangle tri in Land.Triangles) {
+            ApplyHeightMapToLandPoint(tri.p1);
+            ApplyHeightMapToLandPoint(tri.p2);
+            ApplyHeightMapToLandPoint(tri.p3);
+            SetLandColor(tri);
+        }
+        // Water
+        foreach (Triangle tri in Water.Triangles) {
+            ApplyHeightMapToWaterPoint(tri.p1);
+            ApplyHeightMapToWaterPoint(tri.p2);
+            ApplyHeightMapToWaterPoint(tri.p3);
+            SetWaterColor(tri);
         }
     }
 
-    public void ApplyHeightMapToPoint(Point p) {
+    public void ApplyHeightMapToLandPoint(Point p) {
         float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
         float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
 
@@ -89,14 +114,33 @@ public class PlanetBuilder : MonoBehaviour {
         p.position += (baseComponent + mountainComponent * mask) * p.position.normalized;
     }
 
-    public void SetColor(Triangle tri) {
+    public void ApplyHeightMapToWaterPoint(Point p) {
+        float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
+        float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
+
+        float waterComponent = Mathf.Lerp(waterParams.Low, waterParams.High, (Noise.RidgedFractal(theta, phi, waterParams.Frequency, waterParams.Persistence, waterParams.Octaves, seed) + 1.0f) / 2.0f);
+        float mask = useWaterMask ?
+            Mathf.Clamp(Mathf.Lerp(waterMask.Low, waterMask.High,
+                                   (Noise.CubedFractal(theta, phi, waterMask.Frequency, waterMask.Persistence, waterMask.Octaves, seed) + 1.0f) / 2.0f),
+                                   0.0f, 1.0f) :
+            1.0f;
+
+
+        p.position += (waterComponent * mask) * p.position.normalized;
+    }
+
+    public void SetLandColor(Triangle tri) {
         float elevation = AvgElevation(tri);
-        foreach (Area area in areas) {
+        foreach (Area area in LandAreas) {
             if (elevation <= area.EndElevation) {
                 tri.color = area.GetColor(tri);
                 break;
             }
         }
+    }
+
+    public void SetWaterColor(Triangle tri) {
+        tri.color = WaterArea.GetColor(tri);
     }
 
     private float AvgElevation(Triangle tri) {
