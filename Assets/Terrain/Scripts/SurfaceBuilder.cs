@@ -18,7 +18,7 @@ public class SurfaceBuilder : MonoBehaviour {
     }
 
     [SerializeField]
-    [Range(0, 7)]
+    [Range(0, 6)]
     private int subdivisionSteps = 3;
     [SerializeField]
     [Range(0.5f, 1000)]
@@ -55,18 +55,31 @@ public class SurfaceBuilder : MonoBehaviour {
 	
 	public void ApplyHeightMap() {
         InitialiseSeed();
-        foreach (Point p in Plane.Points) {
-            p.position.y += (Mathf.PerlinNoise(seed + p.x, seed + p.z) * maxElevation);
-            SetColor(p);
+        foreach (Triangle tri in Plane.Triangles) {
+            ApplyHeightMapToPoint(tri.p1);
+            ApplyHeightMapToPoint(tri.p2);
+            ApplyHeightMapToPoint(tri.p3);
+            SetColor(tri);
         }
     }
 
-    public void SetColor(Point p) {
+    public void ApplyHeightMapToPoint(Point p) {
+        p.position.y += (Mathf.PerlinNoise(seed + p.x, seed + p.z) * maxElevation);
+    }
+
+    public void SetColor(Triangle tri) {
+        float elevation = AvgElevation(tri);
         foreach (Area area in Areas) {
-            if(p.y <= area.endElevation) {
-                p.color = area.GetColor(p);
+            if (elevation <= area.endElevation) {
+                tri.color = area.GetColor(tri);
                 break;
             }
         }
+    }
+
+    private float AvgElevation(Triangle tri) {
+        float elevation = tri.p1.position.y + tri.p2.position.y + tri.p3.position.y;
+        elevation /= 3.0f;
+        return elevation;
     }
 }

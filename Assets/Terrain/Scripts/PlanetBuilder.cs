@@ -18,7 +18,7 @@ public class PlanetBuilder : MonoBehaviour {
     }
 
     [SerializeField]
-    [Range(0, 6)]
+    [Range(0, 5)]
     private int subdivisionSteps = 3;
     [SerializeField]
     [Range(0.5f, 1000)]
@@ -51,21 +51,35 @@ public class PlanetBuilder : MonoBehaviour {
 	
 	public void ApplyHeightMap() {
         InitialiseSeed();
-        foreach (Point p in IcoSphere.Points) {
-            float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
-            float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
-            p.position += (Mathf.PerlinNoise(seed + theta, seed + phi) * maxElevation * p.position.normalized);
-            SetColor(p);
+        foreach (Triangle tri in IcoSphere.Triangles) {
+            ApplyHeightMapToPoint(tri.p1);
+            ApplyHeightMapToPoint(tri.p2);
+            ApplyHeightMapToPoint(tri.p3);
+            SetColor(tri);
         }
     }
 
-    public void SetColor(Point p) {
-        float elevation = p.position.magnitude - radius;
+    public void ApplyHeightMapToPoint(Point p) {
+        float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
+        float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
+        p.position += (Mathf.PerlinNoise(seed + theta, seed + phi) * maxElevation * p.position.normalized);
+    }
+
+    public void SetColor(Triangle tri) {
+        float elevation = AvgElevation(tri);
         foreach (Area area in Areas) {
             if (elevation <= area.endElevation) {
-                p.color = area.GetColor(p);
+                tri.color = area.GetColor(tri);
                 break;
             }
         }
+    }
+
+    private float AvgElevation(Triangle tri) {
+        float elevation = (tri.p1.position.magnitude - radius) +
+                          (tri.p2.position.magnitude - radius) + 
+                          (tri.p3.position.magnitude - radius);
+        elevation /= 3.0f;
+        return elevation;
     }
 }
