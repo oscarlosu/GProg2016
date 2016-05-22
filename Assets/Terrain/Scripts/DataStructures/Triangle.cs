@@ -35,7 +35,7 @@ public class Triangle {
         this.p1 = p1.Copy();
         this.p2 = p2.Copy();
         this.p3 = p3.Copy();
-        this.color = Color.red; // Default color, chose red mainly for debugging purposes
+        this.color = new Color(1, 0, 1, 1); // Default color, chose pink mainly for debugging purposes
     }
 
 }

@@ -32,8 +32,6 @@ public class IcoSphere : MonoBehaviour {
     //public PointList Points { get; set; }
     public TriangleList Triangles { get; set; }
 
-    private Dictionary<Int64, Point> middlePointCache;
-
     [SerializeField]
     [Range(0, 5)]
     private int subdivisionSteps = 0;
@@ -108,8 +106,6 @@ public class IcoSphere : MonoBehaviour {
 
 
         Subdivide(subdivisionSteps);
-
-        Debug.Log("Triangle count " + Triangles.Count + " Vertex count " + 3 * Triangles.Count);
     }
 
     private Point AdjustPosition(Point p) {
@@ -129,8 +125,6 @@ public class IcoSphere : MonoBehaviour {
     }
 
     private void Subdivide(int subdivisionSteps) {
-        middlePointCache = new Dictionary<Int64, Point>();
-
         for (int i = 0; i < subdivisionSteps; ++i) {
             TriangleList triangles2 = new TriangleList();
             for(int j = 0; j < Triangles.Count; ++j) {
@@ -154,7 +148,6 @@ public class IcoSphere : MonoBehaviour {
         Mesh.vertices = Triangles.Vector3Array();
         Mesh.colors = Triangles.ColorArray();
         Mesh.triangles = Triangles.IndexArray();
-        Mesh.RecalculateNormals();
-        Debug.Log("Mesh verts : " + Mesh.vertexCount + " tris : " + Mesh.triangles.Length + " colors: " + Mesh.colors.Length);    
+        Mesh.RecalculateNormals();  
     }
 }

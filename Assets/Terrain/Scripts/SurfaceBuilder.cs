@@ -32,14 +32,21 @@ public class SurfaceBuilder : MonoBehaviour {
     private float seed = 0;
     [SerializeField]
     private bool useRandomSeed = false;
-    [SerializeField]
-    private float maxElevation = 1;
 
 
     // Colors
     [SerializeField]
     private List<Area> Areas;
 
+    [Header("Generation Params")]
+    [SerializeField]
+    private NoiseParams baseElevation;
+    [SerializeField]
+    private NoiseParams ridgedMountains;
+    [SerializeField]
+    private bool useMountainMask;
+    [SerializeField]
+    private NoiseParams mountainMask;    
 
     public void BuildSurface() {
         Plane.CreatePlane(sizeX, sizeZ, subdivisionSteps);
@@ -64,13 +71,18 @@ public class SurfaceBuilder : MonoBehaviour {
     }
 
     public void ApplyHeightMapToPoint(Point p) {
-        p.position.y += (Mathf.PerlinNoise(seed + p.x, seed + p.z) * maxElevation);
+        float baseComponent = Mathf.Lerp(baseElevation.Low, baseElevation.High, (Noise.Fractal(p.position.x, p.position.z, baseElevation.Frequency, baseElevation.Persistence, baseElevation.Octaves, seed) + 1.0f) / 2.0f);
+        float mountainComponent = Mathf.Lerp(ridgedMountains.Low, ridgedMountains.High, (Noise.RidgedFractal(p.position.x, p.position.z, ridgedMountains.Frequency, ridgedMountains.Persistence, ridgedMountains.Octaves, seed) + 1.0f) / 2.0f);
+        float mask = useMountainMask ? Noise.CubedFractal(p.position.x, p.position.z, mountainMask.Frequency, mountainMask.Persistence, mountainMask.Octaves, seed) : 1.0f;
+        
+
+        p.position.y += (baseComponent + mountainComponent * mask);
     }
 
     public void SetColor(Triangle tri) {
         float elevation = AvgElevation(tri);
         foreach (Area area in Areas) {
-            if (elevation <= area.endElevation) {
+            if (elevation <= area.EndElevation) {
                 tri.color = area.GetColor(tri);
                 break;
             }

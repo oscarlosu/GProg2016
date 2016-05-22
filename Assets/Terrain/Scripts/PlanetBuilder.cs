@@ -29,13 +29,27 @@ public class PlanetBuilder : MonoBehaviour {
     private float seed = 0;
     [SerializeField]
     private bool useRandomSeed = false;
-    [SerializeField]
-    private float maxElevation = 2;
-
 
     // Colors
     [SerializeField]
-    private List<Area> Areas;
+    private List<Area> areas;
+    public List<Area> Areas {
+        get {
+            return areas;
+        }
+    }
+
+    [Header("Generation Params")]
+    [SerializeField]
+    private NoiseParams baseElevation;
+    [SerializeField]
+    private NoiseParams ridgedMountains;
+    [SerializeField]
+    private bool useMountainMask;
+    [SerializeField]
+    private NoiseParams mountainMask;
+
+
 
     public void BuildPlanet() {
         IcoSphere.CreateIcosphere(radius, subdivisionSteps);
@@ -62,13 +76,23 @@ public class PlanetBuilder : MonoBehaviour {
     public void ApplyHeightMapToPoint(Point p) {
         float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
         float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
-        p.position += (Mathf.PerlinNoise(seed + theta, seed + phi) * maxElevation * p.position.normalized);
+
+        float baseComponent = Mathf.Lerp(baseElevation.Low, baseElevation.High, (Noise.Fractal(theta, phi, baseElevation.Frequency, baseElevation.Persistence, baseElevation.Octaves, seed) + 1.0f) / 2.0f);
+        float mountainComponent = Mathf.Lerp(ridgedMountains.Low, ridgedMountains.High, (Noise.RidgedFractal(theta, phi, ridgedMountains.Frequency, ridgedMountains.Persistence, ridgedMountains.Octaves, seed) + 1.0f) / 2.0f);
+        float mask = useMountainMask ? 
+            Mathf.Clamp(Mathf.Lerp(mountainMask.Low, mountainMask.High, 
+                                   (Noise.CubedFractal(theta, phi, mountainMask.Frequency, mountainMask.Persistence, mountainMask.Octaves, seed) + 1.0f) / 2.0f), 
+                                   0.0f, 1.0f) : 
+            1.0f;
+
+
+        p.position += (baseComponent + mountainComponent * mask) * p.position.normalized;
     }
 
     public void SetColor(Triangle tri) {
         float elevation = AvgElevation(tri);
-        foreach (Area area in Areas) {
-            if (elevation <= area.endElevation) {
+        foreach (Area area in areas) {
+            if (elevation <= area.EndElevation) {
                 tri.color = area.GetColor(tri);
                 break;
             }

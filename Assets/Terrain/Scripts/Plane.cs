@@ -30,8 +30,6 @@ public class Plane : MonoBehaviour {
 
     public TriangleList Triangles { get; set; }
 
-    private Dictionary<Int64, Point> middlePointCache;
-
     [SerializeField]
     [Range(0, 6)]
     private int subdivisionSteps = 0;
@@ -74,8 +72,6 @@ public class Plane : MonoBehaviour {
         Triangles.Add(new Triangle(p4, p2, p3));
 
         Subdivide(subdivisionSteps);
-
-        Debug.Log("Triangle count " + Triangles.Count + " Vertex count " + 3 * Triangles.Count);
     }
 
     private Point GetMiddlePoint(Point a, Point b) {
@@ -86,7 +82,6 @@ public class Plane : MonoBehaviour {
     }
 
     private void Subdivide(int subdivisionSteps) {
-        middlePointCache = new Dictionary<Int64, Point>();
 
         for (int i = 0; i < subdivisionSteps; ++i) {
             TriangleList triangles2 = new TriangleList();
@@ -112,7 +107,6 @@ public class Plane : MonoBehaviour {
         Mesh.colors = Triangles.ColorArray();
         Mesh.triangles = Triangles.IndexArray();
         Mesh.RecalculateNormals();
-        Debug.Log("Mesh verts : " + Mesh.vertexCount + " tris : " + Mesh.triangles.Length + " colors: " + Mesh.colors.Length);
     }
 }
 
