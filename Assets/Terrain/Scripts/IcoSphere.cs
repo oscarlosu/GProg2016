@@ -43,7 +43,7 @@ public class IcoSphere : MonoBehaviour {
         Filter.mesh = Mesh;
     }
 
-    private void ClearMesh() {
+    public void ClearMesh() {
         Mesh.Clear();
     }
 

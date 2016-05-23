@@ -62,6 +62,8 @@ public class SurfaceBuilder : MonoBehaviour {
 
     [Header("Water Generation Params")]
     [SerializeField]
+    private bool CreateWater = true;
+    [SerializeField]
     private Area WaterArea;
     [SerializeField]
     private NoiseParams waterParams;
@@ -72,10 +74,16 @@ public class SurfaceBuilder : MonoBehaviour {
 
     public void BuildSurface() {
         Land.CreatePlane(sizeX, sizeZ, subdivisionSteps);
-        Water.CreatePlane(sizeX, sizeZ, subdivisionSteps);
+        if (CreateWater) {
+            Water.CreatePlane(sizeX, sizeZ, subdivisionSteps);
+        } else {
+            Water.ClearMesh();
+        }
         ApplyHeightMap();
-        Land.UpdateMesh();        
-        Water.UpdateMesh();
+        Land.UpdateMesh();
+        if (CreateWater) {
+            Water.UpdateMesh();
+        }
     }
 
     private void InitialiseSeed() {
@@ -93,12 +101,14 @@ public class SurfaceBuilder : MonoBehaviour {
             ApplyHeightMapToLandPoint(tri.p3);
             SetLandColor(tri);
         }
-        // Water
-        foreach (Triangle tri in Water.Triangles) {
-            ApplyHeightMapToWaterPoint(tri.p1);
-            ApplyHeightMapToWaterPoint(tri.p2);
-            ApplyHeightMapToWaterPoint(tri.p3);
-            SetWaterColor(tri);
+        if (CreateWater) {
+            // Water
+            foreach (Triangle tri in Water.Triangles) {
+                ApplyHeightMapToWaterPoint(tri.p1);
+                ApplyHeightMapToWaterPoint(tri.p2);
+                ApplyHeightMapToWaterPoint(tri.p3);
+                SetWaterColor(tri);
+            }
         }
     }
 

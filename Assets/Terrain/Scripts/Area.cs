@@ -13,6 +13,6 @@ public class Area {
 
     public Color GetColor(Triangle tri) {
         //distribution.Invoke(p);
-        return Palette[UnityEngine.Random.Range(0, Palette.Count - 1)];
+        return Palette[UnityEngine.Random.Range(0, Palette.Count)];
     }
 }

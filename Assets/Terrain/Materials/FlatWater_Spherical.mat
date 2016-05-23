@@ -188,11 +188,11 @@ Material:
       data:
         first:
           name: _Amplitude
-        second: 1.5
+        second: 2
       data:
         first:
           name: _Frequency
-        second: 0.01
+        second: 0.005
       data:
         first:
           name: _Radial

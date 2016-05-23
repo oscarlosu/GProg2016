@@ -56,6 +56,8 @@ public class PlanetBuilder : MonoBehaviour {
 
     [Header("Water Generation Params")]
     [SerializeField]
+    private bool CreateWater = true;
+    [SerializeField]
     private Area WaterArea;
     [SerializeField]
     private NoiseParams waterParams;
@@ -68,10 +70,18 @@ public class PlanetBuilder : MonoBehaviour {
 
     public void BuildPlanet() {
         Land.CreateIcosphere(radius, subdivisionSteps);
-        Water.CreateIcosphere(radius, subdivisionSteps);
+        if(CreateWater) {
+            Water.CreateIcosphere(radius, subdivisionSteps);
+        } else {
+            Water.ClearMesh();
+        }
+
         ApplyHeightMap();
+
         Land.UpdateMesh();
-        Water.UpdateMesh();
+        if (CreateWater) {
+            Water.UpdateMesh();
+        }
     }
 
     private void InitialiseSeed() {
@@ -89,13 +99,15 @@ public class PlanetBuilder : MonoBehaviour {
             ApplyHeightMapToLandPoint(tri.p3);
             SetLandColor(tri);
         }
-        // Water
-        foreach (Triangle tri in Water.Triangles) {
-            ApplyHeightMapToWaterPoint(tri.p1);
-            ApplyHeightMapToWaterPoint(tri.p2);
-            ApplyHeightMapToWaterPoint(tri.p3);
-            SetWaterColor(tri);
-        }
+        if(CreateWater) {
+            // Water
+            foreach (Triangle tri in Water.Triangles) {
+                ApplyHeightMapToWaterPoint(tri.p1);
+                ApplyHeightMapToWaterPoint(tri.p2);
+                ApplyHeightMapToWaterPoint(tri.p3);
+                SetWaterColor(tri);
+            }
+        }        
     }
 
     public void ApplyHeightMapToLandPoint(Point p) {
