@@ -1,4 +1,4 @@
-﻿Shader "Custom/Flat Transparent" {
+﻿Shader "Custom/Flat Opaque" {
 	Properties {
 		_Color ("Color Tint", Color) = (1.0, 1.0, 1.0, 1.0)
 		_MainTex ("Diffuse Texture", 2D) = "white"{}
@@ -12,8 +12,6 @@
 
 	}
 	SubShader {
-			Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
-			Blend SrcAlpha OneMinusSrcAlpha
 		Pass {
 			Tags {
 				// Necessary to have directional lights work with the shader

@@ -6,11 +6,11 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: WhiteFlat
-  m_Shader: {fileID: 4800000, guid: ca65bb5baf9e18d40ace417cdb8a8040, type: 3}
+  m_Name: FlatOpaque
+  m_Shader: {fileID: 4800000, guid: 6a74724c4d67549408706f916ffce82b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 5
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2

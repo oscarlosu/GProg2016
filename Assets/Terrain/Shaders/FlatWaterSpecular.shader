@@ -1,4 +1,4 @@
-﻿Shader "Custom/Flat Transparent" {
+﻿Shader "Custom/Flat Water" {
 	Properties {
 		_Color ("Color Tint", Color) = (1.0, 1.0, 1.0, 1.0)
 		_MainTex ("Diffuse Texture", 2D) = "white"{}
@@ -9,7 +9,10 @@
 		_RimColor ("Rim Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_RimPower ("Rim Power", Range(0.1, 10.0)) = 3.0
 
+		_Amplitude ("Amplitude", Float) = 5
+		_Frequency("Frequency", Float) = 45
 
+		_Spherical("Use spherical coordinates? (1 = yes, -1 = no)", Float) = -1
 	}
 	SubShader {
 			Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
@@ -23,6 +26,10 @@
 			// pragmas
 			#pragma vertex vert
 			#pragma fragment frag
+
+			#pragma target 3.0
+
+			#include "noiseSimplex.cginc"
 			
 
 
@@ -34,6 +41,11 @@
 			uniform float _Shininess;
 			uniform float4 _RimColor;
 			uniform float _RimPower;
+
+			// Water animation variables
+			uniform float _Amplitude;
+			uniform float _Frequency;
+			uniform float _Radial;
 
 			// Unity defined variables
 			uniform float4 _LightColor0;
@@ -56,9 +68,25 @@
 			// vertex function
 			vertexOutput vert(vertexInput i) {
 				vertexOutput o;
+
+				// Offset vertex position with sine wave
+				//float4 pos = i.vertex + float4(0, 1, 0, 0) * (cos(_Time * _Frequency * i.vertex.x) + cos(_Time * _Frequency * i.vertex.z)) * _Amplitude;
+				// Spherical
+				float4 pos;
+				if (_Radial > 0) {
+					pos = i.vertex + normalize(i.vertex) * snoise(i.vertex * _Frequency * _Time) * _Amplitude;
+				}
+				// Cartesian
+				else {
+					pos = i.vertex + float4(0, 1, 0, 0) * snoise(i.vertex * _Frequency * _Time) * _Amplitude;
+				}
+
+				
+
+
 				// Position
-				o.pos = mul(UNITY_MATRIX_MVP, i.vertex);
-				o.posWorld = mul(_Object2World, i.vertex);
+				o.pos = mul(UNITY_MATRIX_MVP, pos);
+				o.posWorld = mul(_Object2World, pos);
 				o.normalDir = normalize(mul(float4(i.normal, 0.0), _World2Object).xyz);
 				o.tex = i.texcoord;
 
@@ -105,7 +133,12 @@
 				// Texture maps
 				float4 tex = tex2D(_MainTex, i.tex.xy * _MainTex_ST.xy + _MainTex_ST.zw);
 
+				//// Adjust color based on steepness using normals
+				//float4 modelNormal = mul(_World2Object, normalDirection);
+				//float foaminess = 1 - abs(dot(modelNormal, float4(0, 1, 0, 0)));
 
+				//float4 ColorWithFoam = lerp(float4(lightFinal, 1.0) * _Color * i.color, float4(0, 0.5, 0, 1), foaminess);
+				//return float4(foaminess, 0, 0, 1);
 				return float4(lightFinal, 1.0) * _Color * i.color;
 			}
 			ENDCG
@@ -122,6 +155,10 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
+			#pragma target 3.0
+
+			#include "noiseSimplex.cginc"
+
 			// user defined variables
 			uniform sampler2D _MainTex;
 			uniform float4 _MainTex_ST;
@@ -130,6 +167,10 @@
 			uniform float _Shininess;
 			uniform float4 _RimColor;
 			uniform float _RimPower;
+
+			// Water animation variables
+			uniform float _Amplitude;
+			uniform float _Frequency;
 
 			// Unity defined variables
 			uniform float4 _LightColor0;
@@ -152,9 +193,14 @@
 			// vertex function
 			vertexOutput vert(vertexInput i) {
 				vertexOutput o;
+				// Offset vertex position with sine wave
+				//float4 pos = i.vertex + float4(0, 1, 0, 0) * (cos(_Time * _Frequency * i.vertex.x) + cos(_Time * _Frequency * i.vertex.z)) * _Amplitude;
+				float4 pos = i.vertex + float4(0, 1, 0, 0) * snoise(i.vertex * _Frequency * _Time) * _Amplitude;
+
+
 				// Position
-				o.pos = mul(UNITY_MATRIX_MVP, i.vertex);
-				o.posWorld = mul(_Object2World, i.vertex);
+				o.pos = mul(UNITY_MATRIX_MVP, pos);
+				o.posWorld = mul(_Object2World, pos);
 				o.normalDir = normalize(mul(float4(i.normal, 0.0), _World2Object).xyz);
 				o.tex = i.texcoord;
 
