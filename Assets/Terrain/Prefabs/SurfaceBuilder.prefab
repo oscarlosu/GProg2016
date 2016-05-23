@@ -1,0 +1,126 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &173886
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 431514}
+  - 114: {fileID: 11401074}
+  m_Layer: 0
+  m_Name: SurfaceBuilder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &431514
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 173886}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+--- !u!114 &11401074
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 173886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e24cfa85f517184c94aebfb14c79f5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlanePrefab: {fileID: 11461896, guid: 0674b25fbc830c24b933969573ac6f7d, type: 2}
+  land: {fileID: 0}
+  water: {fileID: 0}
+  subdivisionSteps: 5
+  sizeX: 50
+  sizeZ: 50
+  seed: 421944.44
+  useRandomSeed: 0
+  LandMaterial: {fileID: 2100000, guid: 0defc546caac86645a2dcb8856d4ebb6, type: 2}
+  LandAreas:
+  - Name: Underwater
+    Palette:
+    - {r: 0.83823526, g: 0.71822757, b: 0.4499351, a: 1}
+    - {r: 1, g: 0.797735, b: 0.5441177, a: 1}
+    EndElevation: 2
+  - Name: Coast
+    Palette:
+    - {r: 0.92549026, g: 0.92549026, b: 0.58431375, a: 1}
+    - {r: 1, g: 0.8745099, b: 0.5647059, a: 1}
+    - {r: 0.8980393, g: 0.96470594, b: 0.7725491, a: 1}
+    EndElevation: 5
+  - Name: Grass
+    Palette:
+    - {r: 0.21568629, g: 0.6313726, b: 0.3647059, a: 1}
+    - {r: 0.3529412, g: 0.7725491, b: 0.38823533, a: 1}
+    - {r: 0.14509805, g: 0.7294118, b: 0.48627454, a: 1}
+    EndElevation: 10
+  - Name: Mountain
+    Palette:
+    - {r: 0.85098046, g: 0.8588236, b: 1, a: 1}
+    - {r: 0.97647065, g: 0.8470589, b: 1, a: 1}
+    - {r: 1, g: 0.8862746, b: 0.8470589, a: 1}
+    EndElevation: 80
+  baseElevation:
+    Low: -20
+    High: 30
+    Frequency: 0.003
+    Persistence: 0.8
+    Octaves: 8
+  ridgedMountains:
+    Low: 0
+    High: 20
+    Frequency: 0.03
+    Persistence: 0.5
+    Octaves: 10
+  useMountainMask: 1
+  mountainMask:
+    Low: -13
+    High: 13
+    Frequency: 0.002
+    Persistence: 0.7
+    Octaves: 7
+  WaterMaterial: {fileID: 2100000, guid: 8b1e8159592d3a94e83754aed559aecb, type: 2}
+  CreateWater: 1
+  WaterArea:
+    Name: Water
+    Palette:
+    - {r: 0.4742647, g: 0.62547976, b: 0.9485294, a: 0.549}
+    - {r: 0.40784317, g: 0.72508454, b: 0.9490196, a: 0.541}
+    - {r: 0.551, g: 0.7643847, b: 0.9044118, a: 0.566}
+    EndElevation: 0
+  waterParams:
+    Low: 0
+    High: 5
+    Frequency: 0.02
+    Persistence: 0.9
+    Octaves: 6
+  useWaterMask: 1
+  waterMask:
+    Low: -5
+    High: 7
+    Frequency: 0.00015
+    Persistence: 0.75
+    Octaves: 6
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 173886}
+  m_IsPrefabParent: 1

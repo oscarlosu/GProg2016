@@ -46,6 +46,7 @@ MonoBehaviour:
   radius: 100
   seed: 479312.72
   useRandomSeed: 0
+  LandMaterial: {fileID: 2100000, guid: 0defc546caac86645a2dcb8856d4ebb6, type: 2}
   LandAreas:
   - Name: Coast
     Palette:
@@ -78,6 +79,8 @@ MonoBehaviour:
     Frequency: 0.002
     Persistence: 0.7
     Octaves: 7
+  WaterMaterial: {fileID: 2100000, guid: 781e913fb26c82749ba8985dfeecc1bd, type: 2}
+  CreateWater: 1
   WaterArea:
     Name: Water
     Palette:

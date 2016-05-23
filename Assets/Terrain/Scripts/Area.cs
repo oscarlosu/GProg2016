@@ -6,12 +6,13 @@ using UnityEngine.Events;
 
 [Serializable]
 public class Area {
-    public List<Color> palette;
-    public float endElevation;
-    public UnityEvent<Point> distribution;
+    public string Name;
+    public List<Color> Palette;
+    public float EndElevation;
+    //public UnityEvent<Triangle> distribution;
 
-    public Color GetColor(Point p) {
+    public Color GetColor(Triangle tri) {
         //distribution.Invoke(p);
-        return palette[UnityEngine.Random.Range(0, palette.Count - 1)];
+        return Palette[UnityEngine.Random.Range(0, Palette.Count)];
     }
 }

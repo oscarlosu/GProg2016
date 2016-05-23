@@ -1,4 +1,4 @@
-﻿Shader "Custom/Flat Transparent Specular" {
+﻿Shader "Custom/Flat Transparent" {
 	Properties {
 		_Color ("Color Tint", Color) = (1.0, 1.0, 1.0, 1.0)
 		_MainTex ("Diffuse Texture", 2D) = "white"{}
