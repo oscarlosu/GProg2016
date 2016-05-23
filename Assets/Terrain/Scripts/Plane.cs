@@ -28,10 +28,13 @@ public class Plane : MonoBehaviour {
         }
     }
 
+    public PointList Points { get; set; }
     public TriangleList Triangles { get; set; }
 
+    private Dictionary<Int64, int> middlePointIndexCache;
+
     [SerializeField]
-    [Range(0, 6)]
+    [Range(0, 7)]
     private int subdivisionSteps = 0;
     [SerializeField]
     private float sizeX = 1;
@@ -43,7 +46,7 @@ public class Plane : MonoBehaviour {
         Filter.mesh = Mesh;
     }
 
-    public void ClearMesh() {
+    private void ClearMesh() {
         Mesh.Clear();
     }
 
@@ -57,44 +60,73 @@ public class Plane : MonoBehaviour {
         this.sizeZ = depth;
         this.subdivisionSteps = subdivisionSteps;
         // Clear lists
+        Points = new PointList();
         Triangles = new TriangleList();
 
 
         // Vertices
         // XZ plane
-        Point p1 = new Point(sizeX / 2.0f, 0, -sizeZ / 2.0f);
-        Point p2 = new Point(sizeX / 2.0f, 0, sizeZ / 2.0f);
-        Point p3 = new Point(-sizeX / 2.0f, 0, -sizeZ / 2.0f);
-        Point p4 = new Point(-sizeX / 2.0f, 0, sizeZ / 2.0f);
+        addVertex(new Point(sizeX / 2.0f, 0, -sizeZ / 2.0f));
+        addVertex(new Point(sizeX / 2.0f, 0, sizeZ / 2.0f));
+        addVertex(new Point(-sizeX / 2.0f, 0, -sizeZ / 2.0f));
+        addVertex(new Point(-sizeX / 2.0f, 0, sizeZ / 2.0f));
 
         // Triangles
-        Triangles.Add(new Triangle(p2, p1, p3));
-        Triangles.Add(new Triangle(p4, p2, p3));
+        Triangles.Add(new Triangle(1, 0, 2));
+        Triangles.Add(new Triangle(3, 1, 2));
 
         Subdivide(subdivisionSteps);
+
+        Debug.Log("Triangle count " + Triangles.Count + " Vertex count " + Points.Count);
     }
 
-    private Point GetMiddlePoint(Point a, Point b) {
-        // Calculate
-        return new Point((a.x + b.x) / 2.0f,
-                                (a.y + b.y) / 2.0f,
-                                (a.z + b.z) / 2.0f);
+    private int addVertex(Point p) {
+        Points.Add(p);
+        return Points.Count - 1;
+    }
+
+    private int GetMiddlePoint(int p1, int p2) {
+        // first check if we have it already
+        bool firstIsSmaller = p1 < p2;
+        Int64 smallerIndex = firstIsSmaller ? p1 : p2;
+        Int64 greaterIndex = firstIsSmaller ? p2 : p1;
+        Int64 key = (smallerIndex << 32) + greaterIndex;
+
+        int ret;
+        if (middlePointIndexCache.TryGetValue(key, out ret)) {
+            return ret;
+        }
+
+        // not in cache, calculate it
+        Point point1 = Points[p1];
+        Point point2 = Points[p2];
+        Point middle = new Point((point1.x + point2.x) / 2.0f,
+                                     (point1.y + point2.y) / 2.0f,
+                                     (point1.z + point2.z) / 2.0f);
+
+        // add vertex makes sure point is on unit sphere
+        int i = addVertex(middle);
+
+        // store it in cache, return index
+        middlePointIndexCache.Add(key, i);
+        return i;
     }
 
     private void Subdivide(int subdivisionSteps) {
+        middlePointIndexCache = new Dictionary<Int64, int>();
 
-        for (int i = 0; i < subdivisionSteps; ++i) {
-            TriangleList triangles2 = new TriangleList();
-            for (int j = 0; j < Triangles.Count; ++j) {
+        for (int i = 0; i < subdivisionSteps; i++) {
+            var triangles2 = new TriangleList();
+            foreach (var tri in Triangles) {
                 // replace triangle by 4 triangles
-                Point p1p2 = GetMiddlePoint(Triangles[j].p1, Triangles[j].p2);
-                Point p2p3 = GetMiddlePoint(Triangles[j].p2, Triangles[j].p3);
-                Point p3p1 = GetMiddlePoint(Triangles[j].p3, Triangles[j].p1);
+                int a = GetMiddlePoint(tri.v1, tri.v2);
+                int b = GetMiddlePoint(tri.v2, tri.v3);
+                int c = GetMiddlePoint(tri.v3, tri.v1);
 
-                triangles2.Add(new Triangle(Triangles[j].p1, p1p2, p3p1));
-                triangles2.Add(new Triangle(Triangles[j].p2, p2p3, p1p2));
-                triangles2.Add(new Triangle(Triangles[j].p3, p3p1, p2p3));
-                triangles2.Add(new Triangle(p1p2, p2p3, p3p1));
+                triangles2.Add(new Triangle(tri.v1, a, c));
+                triangles2.Add(new Triangle(tri.v2, b, a));
+                triangles2.Add(new Triangle(tri.v3, c, b));
+                triangles2.Add(new Triangle(a, b, c));
             }
             Triangles = triangles2;
         }
@@ -103,9 +135,9 @@ public class Plane : MonoBehaviour {
     public void UpdateMesh() {
         InitialiseMesh();
         ClearMesh();
-        Mesh.vertices = Triangles.Vector3Array();
-        Mesh.colors = Triangles.ColorArray();
-        Mesh.triangles = Triangles.IndexArray();
+        Mesh.vertices = Points.ToVector3Array();
+        Mesh.colors = Points.ToColorArray();
+        Mesh.triangles = Triangles.ToIndexArray();
         Mesh.RecalculateNormals();
     }
 }

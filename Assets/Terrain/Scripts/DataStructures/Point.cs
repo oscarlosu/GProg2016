@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 
 public class Point {
-    public Vector3 position;    
+    public Vector3 position;
+    public Color color;
 
     public float x {
         get {
@@ -30,9 +31,16 @@ public class Point {
 
     public Point(float x, float y, float z) {
         this.position = new Vector3(x, y, z);
+        this.color = Color.red;
     }
 
-    public Point Copy() {
-        return new Point(x, y, z);
+    public Point(float x, float y, float z, Color color) {
+        this.position = new Vector3(x, y, z);
+        this.color = color;
+    }
+
+    public Point(float x, float y, float z, float r, float g, float b, float a) {
+        this.position = new Vector3(x, y, z);
+        this.color = new Color(r, g, b, a);
     }
 }

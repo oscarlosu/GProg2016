@@ -9,11 +9,11 @@ public class PointList : List<Point> {
         }
         return array;
     }
-    //public Color[] ToColorArray() {
-    //    Color[] array = new Color[Count];
-    //    for (int i = 0; i < Count; ++i) {
-    //        array[i] = this[i].color;
-    //    }
-    //    return array;
-    //}
+    public Color[] ToColorArray() {
+        Color[] array = new Color[Count];
+        for (int i = 0; i < Count; ++i) {
+            array[i] = this[i].color;
+        }
+        return array;
+    }
 }

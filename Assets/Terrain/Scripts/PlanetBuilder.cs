@@ -7,29 +7,18 @@ public class PlanetBuilder : MonoBehaviour {
     private IcoSphere IcoSpherePrefab;
 
     [SerializeField]
-    private IcoSphere land;
-    public IcoSphere Land {
+    private IcoSphere icosphere;
+    public IcoSphere IcoSphere {
         get {
-            if(land == null) {
-                land = Instantiate(IcoSpherePrefab);
+            if(icosphere == null) {
+                icosphere = Instantiate(IcoSpherePrefab);
             }
-            return land;
+            return icosphere;
         }
     }
 
     [SerializeField]
-    private IcoSphere water;
-    public IcoSphere Water {
-        get {
-            if (water == null) {
-                water = Instantiate(IcoSpherePrefab);
-            }
-            return water;
-        }
-    }
-
-    [SerializeField]
-    [Range(0, 5)]
+    [Range(0, 6)]
     private int subdivisionSteps = 3;
     [SerializeField]
     [Range(0.5f, 1000)]
@@ -40,48 +29,18 @@ public class PlanetBuilder : MonoBehaviour {
     private float seed = 0;
     [SerializeField]
     private bool useRandomSeed = false;
+    [SerializeField]
+    private float maxElevation = 2;
+
 
     // Colors
-    [Header("Land Generation Params")]
     [SerializeField]
-    private List<Area> LandAreas;
-    [SerializeField]
-    private NoiseParams baseElevation;
-    [SerializeField]
-    private NoiseParams ridgedMountains;
-    [SerializeField]
-    private bool useMountainMask;
-    [SerializeField]
-    private NoiseParams mountainMask;
-
-    [Header("Water Generation Params")]
-    [SerializeField]
-    private bool CreateWater = true;
-    [SerializeField]
-    private Area WaterArea;
-    [SerializeField]
-    private NoiseParams waterParams;
-    [SerializeField]
-    private bool useWaterMask;
-    [SerializeField]
-    private NoiseParams waterMask;
-
-
+    private List<Area> Areas;
 
     public void BuildPlanet() {
-        Land.CreateIcosphere(radius, subdivisionSteps);
-        if(CreateWater) {
-            Water.CreateIcosphere(radius, subdivisionSteps);
-        } else {
-            Water.ClearMesh();
-        }
-
+        IcoSphere.CreateIcosphere(radius, subdivisionSteps);
         ApplyHeightMap();
-
-        Land.UpdateMesh();
-        if (CreateWater) {
-            Water.UpdateMesh();
-        }
+        IcoSphere.UpdateMesh();
     }
 
     private void InitialiseSeed() {
@@ -92,74 +51,21 @@ public class PlanetBuilder : MonoBehaviour {
 	
 	public void ApplyHeightMap() {
         InitialiseSeed();
-        // Land
-        foreach (Triangle tri in Land.Triangles) {
-            ApplyHeightMapToLandPoint(tri.p1);
-            ApplyHeightMapToLandPoint(tri.p2);
-            ApplyHeightMapToLandPoint(tri.p3);
-            SetLandColor(tri);
+        foreach (Point p in IcoSphere.Points) {
+            float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
+            float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
+            p.position += (Mathf.PerlinNoise(seed + theta, seed + phi) * maxElevation * p.position.normalized);
+            SetColor(p);
         }
-        if(CreateWater) {
-            // Water
-            foreach (Triangle tri in Water.Triangles) {
-                ApplyHeightMapToWaterPoint(tri.p1);
-                ApplyHeightMapToWaterPoint(tri.p2);
-                ApplyHeightMapToWaterPoint(tri.p3);
-                SetWaterColor(tri);
-            }
-        }        
     }
 
-    public void ApplyHeightMapToLandPoint(Point p) {
-        float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
-        float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
-
-        float baseComponent = Mathf.Lerp(baseElevation.Low, baseElevation.High, (Noise.Fractal(theta, phi, baseElevation.Frequency, baseElevation.Persistence, baseElevation.Octaves, seed) + 1.0f) / 2.0f);
-        float mountainComponent = Mathf.Lerp(ridgedMountains.Low, ridgedMountains.High, (Noise.RidgedFractal(theta, phi, ridgedMountains.Frequency, ridgedMountains.Persistence, ridgedMountains.Octaves, seed) + 1.0f) / 2.0f);
-        float mask = useMountainMask ? 
-            Mathf.Clamp(Mathf.Lerp(mountainMask.Low, mountainMask.High, 
-                                   (Noise.CubedFractal(theta, phi, mountainMask.Frequency, mountainMask.Persistence, mountainMask.Octaves, seed) + 1.0f) / 2.0f), 
-                                   0.0f, 1.0f) : 
-            1.0f;
-
-
-        p.position += (baseComponent + mountainComponent * mask) * p.position.normalized;
-    }
-
-    public void ApplyHeightMapToWaterPoint(Point p) {
-        float theta = Mathf.Acos(p.position.z / radius) * Mathf.Rad2Deg;
-        float phi = Mathf.Atan2(p.position.y, p.position.x) * Mathf.Rad2Deg;
-
-        float waterComponent = Mathf.Lerp(waterParams.Low, waterParams.High, (Noise.RidgedFractal(theta, phi, waterParams.Frequency, waterParams.Persistence, waterParams.Octaves, seed) + 1.0f) / 2.0f);
-        float mask = useWaterMask ?
-            Mathf.Clamp(Mathf.Lerp(waterMask.Low, waterMask.High,
-                                   (Noise.CubedFractal(theta, phi, waterMask.Frequency, waterMask.Persistence, waterMask.Octaves, seed) + 1.0f) / 2.0f),
-                                   0.0f, 1.0f) :
-            1.0f;
-
-
-        p.position += (waterComponent * mask) * p.position.normalized;
-    }
-
-    public void SetLandColor(Triangle tri) {
-        float elevation = AvgElevation(tri);
-        foreach (Area area in LandAreas) {
-            if (elevation <= area.EndElevation) {
-                tri.color = area.GetColor(tri);
+    public void SetColor(Point p) {
+        float elevation = p.position.magnitude - radius;
+        foreach (Area area in Areas) {
+            if (elevation <= area.endElevation) {
+                p.color = area.GetColor(p);
                 break;
             }
         }
-    }
-
-    public void SetWaterColor(Triangle tri) {
-        tri.color = WaterArea.GetColor(tri);
-    }
-
-    private float AvgElevation(Triangle tri) {
-        float elevation = (tri.p1.position.magnitude - radius) +
-                          (tri.p2.position.magnitude - radius) + 
-                          (tri.p3.position.magnitude - radius);
-        elevation /= 3.0f;
-        return elevation;
     }
 }
